@@ -10,7 +10,6 @@ def main() -> None:
         def __init__(self) -> None:
             super().__init__()
             self.deer = 10
-            self.hi = 2
             self._priv = 1
 
         @property

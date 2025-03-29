@@ -21,7 +21,8 @@ def is_data_descriptor(obj:Any) -> TypeIs[PyDataDescriptor|SlotClassDataDescript
         return False
     return is_py_data_descriptor(obj)
 
-class SlotClassDescriptor[ValueType, ClassvarType=ValueType, ObjectType = Any]:
+class SlotClassDescriptor[ValueType, ClassvarType, ObjectType = Any]:
+    __slots__ = ('__name__', '__qualname__', '_slot_viewer_')
     __name__: str
     __qualname__: str
 
@@ -43,9 +44,12 @@ class SlotClassDescriptor[ValueType, ClassvarType=ValueType, ObjectType = Any]:
 
     def _set_metadata_(self, owner: ObjectType, name: str, slot_viewer: PyDataDescriptor[ValueType, ObjectType]) -> None:
         self.__name__ = name
-        self.__qualname__ = owner.__qualname__ + '.' + name
+        if hasattr(owner, '__qualname__'):
+            self.__qualname__ = owner.__qualname__ + '.' + name
+        else:
+            self.__qualname__ = self.__name__
         getattr(slot_viewer, '__set_name__', _null)(owner, name)
-        self._slot_viewer_ = slot_viewer
+        self._slot_viewer_: PyDataDescriptor = slot_viewer
 
     @overload
     def __get__(self, inst: ObjectType, objtype: type[ObjectType]|None=None, /) -> ValueType: ...
@@ -91,3 +95,5 @@ class ClassvarWrapper[T, O = Any](SlotClassDescriptor[T, T, O]):
     def _cls_set_(self, objtype: type, value: T):
         self.value = value
         self.is_descriptor = is_py_descriptor(value)
+
+
