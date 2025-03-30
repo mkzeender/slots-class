@@ -31,9 +31,9 @@ def _raise_error(desc: PyDescriptor|type, obj, setter:bool) -> Never:
         )
         raise AttributeError(
             (
-                f'"{desc.__name__}" attribute on {object_name} is read-only.'
+                f'Cannot set attribute "{desc.__name__}" on {object_name}.'
                 if setter else
-                f'Cannot access attribute "{desc.__name__}" on object {object_name}'
+                f'Cannot access attribute "{desc.__name__}" on {object_name}'
             ),
             name=desc.__name__,
             obj=obj
