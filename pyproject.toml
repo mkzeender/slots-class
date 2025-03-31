@@ -5,11 +5,17 @@ description = "A modern object model that uses __slots__"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
+keywords = ["slots", "__slots__", "class", "dataclass", "attr", "attribute"]
 authors = [
     { name = "Marckie Zeender", email = "mkzeender@gmail.com" }
 ]
+
 requires-python = ">=3.13"
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/mkzeender/slots-class"
+Documentation = "https://github.com/mkzeender/slots-class"
 
 # [project.scripts]
 # slots-class = "slots_class:main"

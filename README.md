@@ -12,7 +12,7 @@ Reap the performance benefits of slots-based objects while avoiding some of pyth
 
 Slots are assigned to the class statically at load time.
 
-```pycon
+```python
 >>> from slots_class import SlotsClass
 
 >>> class MyObject(SlotsClass):
