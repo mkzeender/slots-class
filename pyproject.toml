@@ -1,15 +1,21 @@
 [project]
 name = "slots-class"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "A modern object model that uses __slots__"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
+keywords = ["slots", "__slots__", "class", "dataclass", "attr", "attribute"]
 authors = [
     { name = "Marckie Zeender", email = "mkzeender@gmail.com" }
 ]
+
 requires-python = ">=3.13"
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/mkzeender/slots-class"
+Documentation = "https://github.com/mkzeender/slots-class"
 
 # [project.scripts]
 # slots-class = "slots_class:main"
@@ -18,11 +24,13 @@ dependencies = []
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-
+[tool.pytest]
+doctest_plus = "enabled"
 
 [dependency-groups]
 dev = [
     "mypy>=1.15.0",
     "pyright>=1.1.398",
     "pytest>=8.3.5",
+    "pytest-doctestplus>=1.4.0",
 ]

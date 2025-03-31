@@ -25,7 +25,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         enable-cache: true
-        cache-local-path: ".uv/cache"
+        cache-local-path: ".uv"
 
     - name: Install project and dependencies
       run: |
@@ -35,7 +35,7 @@ jobs:
     #     python -m generate_readme_tests
     - name: Test with pytest
       run: |
-        uv run pytest
+        uv run pytest --doctest-plus --doctest-glob '*.md'
     - name: Type checking
       run: |
         uv run pyright --level=warning

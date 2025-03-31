@@ -1,148 +1,35 @@
-from __future__ import annotations
-from abc import ABCMeta
-from typing import Any
+from typing import Any, dataclass_transform
+from slots_class.slots_class_meta import SlotsClassMeta
 
-from slots_class.descriptor import (
-    UNSET,
-    ClassvarWrapper,
-    SlotClassDataDescriptor,
-    SlotClassDescriptor,
-    is_data_descriptor,
-)
-from slots_class._annotations import annotations_from_ns
+from slots_class.py_descriptor import NullDescriptor
 
-NO_SLOTS = {
-    "_descriptors_",
-    "_all_slots_",
-    "__classcell__",
-    "__abstractmethods__",
-    "__class__",
-    "__delattr__",
-    "__dir__",
-    "__doc__",
-    "__eq__",
-    "__format__",
-    "__ge__",
-    "__getattribute__",
-    "__getstate__",
-    "__gt__",
-    "__hash__",
-    "__init__",
-    "__init_subclass__",
-    "__le__",
-    "__lt__",
-    "__module__",
-    "__ne__",
-    "__new__",
-    "__reduce__",
-    "__reduce_ex__",
-    "__repr__",
-    "__setattr__",
-    "__sizeof__",
-    "__slots__",
-    "__str__",
-    "__subclasshook__",
-}
-IGNORE_CLASSVARS = NO_SLOTS | {
-    "__dict__",
-    "__weakref__",
-}
-
-
-class SlotsClassError(TypeError):
-    pass
-
-
-class SlotsClassMeta(ABCMeta):
-    _descriptors_: tuple[str]
-    # _class_vars_: tuple[str]
-    _all_slots_: tuple[str]
-    __slots__: tuple[str, ...] = ()
-
-    def __new__(
-        meta,  # pyright: ignore[reportSelfClsParameterName]
-        name: str,
-        bases: tuple[type, ...],
-        ns: dict[str, Any],
-    ) -> SlotsClassMeta:
-
-        # resolve candidates for slots
-        if "__slots__" in ns:
-            raise SlotsClassError("__slots__ should be determined automatically")
-        maybe_slots: tuple[str, ...] = (
-            *annotations_from_ns(ns),
-            *ns["__static_attributes__"],
-        )
-
-        # get info about base classes
-        base_data_descriptors = set[str]()
-        base_slots = set[str]()
-
-        for base in bases:
-            if not isinstance(base, SlotsClassMeta):
-                raise SlotsClassError("Must inherit from another SlotsObj")
-            base_data_descriptors.update(base._descriptors_)
-            base_slots.update(base._all_slots_)
-
-        # search for data descriptors (which must not become slots)
-        data_descriptors = set[str]()
-        for name, value in ns.items():
-            if name in IGNORE_CLASSVARS:
-                continue
-            if is_data_descriptor(value):
-                data_descriptors.add(name)
-
-        # determine what slots should be added to the current class
-        slots = tuple[str, ...]()
-        classvars = dict[str, Any]()
-        for candidate in dict.fromkeys(maybe_slots):
-            if candidate in NO_SLOTS:
-                continue
-
-            if candidate in base_data_descriptors or candidate in base_slots:
-                # block access to private attributes on base classes
-                if candidate.startswith("_") and not candidate.endswith("_"):
-                    raise SlotsClassError(
-                        f"Private attr '{candidate}' belongs to a base class. To force access, declare the name in __slots__"
-                    )
-
-                continue
-            if candidate in data_descriptors:
-                continue
-            slots += (candidate,)
-
-            for base in bases:
-                for parent in base.mro():
-                    if (val := parent.__dict__.get(candidate, UNSET)) is not UNSET:
-                        classvars[candidate] = val
-                        break
-
-        ns["_descriptors_"] = tuple(data_descriptors | base_data_descriptors)
-        ns["_all_slots_"] = (*slots, *base_slots)
-        ns["__slots__"] = slots
-        print(ns.get("goa", "fart"))
-
-        cls = type.__new__(meta, name, bases, ns)
-
-        for name, classvar in classvars.items():
-            if not isinstance(classvar, SlotClassDescriptor):
-                classvar = ClassvarWrapper(classvar)
-            classvar._set_metadata_(cls, name, cls.__dict__[name])
-            type.__setattr__(cls, name, classvar)
-
-        print(type(getattr(cls, "goa", "fart")))
-
-        return cls
-
-    def __setattr__(cls, name: str, value: Any) -> None:
-        if (old := cls.__dict__.get(name, UNSET)) is UNSET:
-            return super().__setattr__(name, value)
-        if isinstance(old, SlotClassDescriptor):
-            old._cls_set_(cls, value)
+_null_desc = NullDescriptor()
 
 
 class SlotsClass(metaclass=SlotsClassMeta):
-    pass
+    def __init__(self, **kwargs: Any) -> None:
+        d = type(self).__dict__
+        k = ""
+        try:
+            for k, v in kwargs.items():
+                d[k].__set__(self, v)
+        except (KeyError, AttributeError):
+            raise TypeError(f'Invalid keyword argument "{k}"') from None
 
 
-# SlotsObj = MetaclassInjector(SlotsObjMeta)
+# def _init_slotclass():
+#     def __init__(self, **kwargs):
+#         for k, v in kwargs.items():
+#             setattr(self, k, v)
+
+#     return __init__
+
+
+@dataclass_transform(
+    eq_default=False, order_default=False, kw_only_default=True, frozen_default=False
+)
+class SlotsDataclass(SlotsClass):
+    def __init_subclass__(cls) -> None:
+        if cls.__dict__.get("__init__", None) is None:
+            cls.__init__ = SlotsClass.__init__  # type: ignore
+        return super().__init_subclass__()
