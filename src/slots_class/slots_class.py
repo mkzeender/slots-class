@@ -3,7 +3,7 @@ from slots_class.slots_class_meta import SlotsClassMeta
 
 from slots_class.py_descriptor import NullDescriptor
 
-_bruh = NullDescriptor()
+_null_desc = NullDescriptor()
 
 
 class SlotsClass(metaclass=SlotsClassMeta):
@@ -31,5 +31,5 @@ class SlotsClass(metaclass=SlotsClassMeta):
 class SlotsDataclass(SlotsClass):
     def __init_subclass__(cls) -> None:
         if cls.__dict__.get("__init__", None) is None:
-            cls.__init__ = SlotsClass.__init__
+            cls.__init__ = SlotsClass.__init__  # type: ignore
         return super().__init_subclass__()
