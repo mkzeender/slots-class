@@ -1,6 +1,6 @@
 [project]
 name = "slots-class"
-version = "0.1.0a1"
+version = "0.1.0a2"
 description = "A modern object model that uses __slots__"
 readme = "README.md"
 license = "MIT"
