@@ -10,7 +10,7 @@ def test_creation():
             self.hoo = "10"
             self.wow = wow
 
-    assert set(Testit._all_slots_) == {"hoo", "wow"}
+    assert set(Testit._slot_info_.slots) == {"hoo", "wow"}
 
     v = Testit(10)
     assert v.wow == 10

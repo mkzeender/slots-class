@@ -5,7 +5,7 @@ from typing import Any, Iterable
 __all__ = ["annotations_from_ns"]
 
 
-def _annotations_from_ns(namespace: dict[str, Any]) -> Iterable[str]:
+def _annotations_from_ns(namespace: dict[str, Any]) -> dict[str, Any]:
     return namespace.get("__annotations__", {})
 
 

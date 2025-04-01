@@ -50,3 +50,6 @@ class NullDescriptor:
         _raise_error(self, obj, False)
     def __set__(self, obj, value) -> Never:
         _raise_error(self, obj, True)
+
+    def __delete__(self, obj) -> Never:
+        _raise_error(self, obj, True)
