@@ -18,3 +18,5 @@ def test_creation():
 
     with pytest.raises(AttributeError):
         v.blah = 100  # type: ignore
+
+

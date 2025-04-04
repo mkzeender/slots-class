@@ -14,14 +14,14 @@ UNSET = UnsetType.UNSET
 
 def _null(*args, **kwargs) -> None: pass
 
-def is_data_descriptor(obj:Any) -> TypeIs[PyDataDescriptor|SlotClassDataDescriptor]:
-    if isinstance(obj, SlotClassDataDescriptor):
+def is_data_descriptor(obj:Any) -> TypeIs[PyDataDescriptor|DataDescriptor]:
+    if isinstance(obj, DataDescriptor):
         return True
-    if isinstance(obj, SlotClassDescriptor):
+    if isinstance(obj, SlotDescriptor):
         return False
     return is_py_data_descriptor(obj)
 
-class SlotClassDescriptor[ValueType, ClassvarType, ObjectType = Any]:
+class SlotDescriptor[ValueType, ClassvarType, ObjectType = Any]:
     __slots__ = ('__name__', '__qualname__', '_slot_viewer_')
     __name__: str
     __qualname__: str
@@ -70,11 +70,11 @@ class SlotClassDescriptor[ValueType, ClassvarType, ObjectType = Any]:
         self._inst_del_(inst)
 
 
-class SlotClassDataDescriptor[ValueType, ObjectType=Any](SlotClassDescriptor[ValueType, ObjectType]):
+class DataDescriptor[ValueType, ObjectType=Any](SlotDescriptor[ValueType, ObjectType]):
     pass
 
 
-class ClassvarWrapper[T, O = Any](SlotClassDescriptor[T, T, O]):
+class ClassvarWrapper[T, O = Any](SlotDescriptor[T, T, O]):
 
     def __init__(self, classvar: T):
         self.value = classvar

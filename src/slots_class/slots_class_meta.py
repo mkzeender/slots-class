@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABCMeta
-from itertools import chain
-from typing import TYPE_CHECKING, Any, Iterable
+from functools import cached_property
+from typing import TYPE_CHECKING, Any
 
 from slots_class._base_info import get_classvar, resolve_bases
 from slots_class._metadata import MetaData
@@ -9,7 +9,7 @@ from slots_class.exceptions import SlotsClassCreationError, SlotsClassMixinError
 from slots_class.descriptor import (
     UNSET,
     ClassvarWrapper,
-    SlotClassDescriptor,
+    SlotDescriptor,
     is_data_descriptor,
 )
 from slots_class._annotations import annotations_from_ns
@@ -58,9 +58,10 @@ class SlotsClassMeta(ABCMeta):
 
     def __new__(
         meta,  # pyright: ignore[reportSelfClsParameterName]
-        name: str,
+        cls_name: str,
         bases: tuple[type, ...],
         ns: dict[str, Any],
+        /,
         *,
         is_mixin: bool | None = None,
     ) -> SlotsClassMeta:
@@ -136,7 +137,7 @@ class SlotsClassMeta(ABCMeta):
             is_mixin = False
 
         if not is_mixin:
-            ns["__slots__"] = slots
+            ns["__slots__"] = tuple(slots)
 
         ns["_slot_info_"] = MetaData(
             slots=(*slots, *base_info.slots),
@@ -146,10 +147,10 @@ class SlotsClassMeta(ABCMeta):
             abstract_attrs=frozenset(abstract_attrs),
         )
 
-        cls = type.__new__(meta, name, bases, ns)
+        cls = type.__new__(meta, cls_name, tuple(base_info.all_bases), ns)
 
         for name, classvar in classvar_descriptors.items():
-            if not isinstance(classvar, SlotClassDescriptor):
+            if not isinstance(classvar, SlotDescriptor):
                 classvar = ClassvarWrapper(classvar)
             classvar._set_metadata_(cls, name, getattr(cls, name, NullDescriptor()))
             type.__setattr__(cls, name, classvar)
@@ -159,7 +160,7 @@ class SlotsClassMeta(ABCMeta):
     def __setattr__(cls, name: str, value: Any) -> None:
         if (old := cls.__dict__.get(name, UNSET)) is UNSET:
             return super().__setattr__(name, value)
-        if isinstance(old, SlotClassDescriptor):
+        if isinstance(old, SlotDescriptor):
             old._cls_set_(cls, value)
 
     if __debug__:
